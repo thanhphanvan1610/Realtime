@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Trò chuyện realtime</title>
+    <style> #chatForm{display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      background-color: #f0f0f0;
+    }
+      </style>
+  </head>
+  <body>
+    <h1>Trò chuyện realtime</h1>
+
+    <div id="messages"></div>
+
+    <form id="chatForm">
+      <input type="text" id="username" placeholder="Nhập tên" required />
+      <br>
+      <input type="text" id="message" placeholder="Nhập tin nhắn" required />
+      <button type="submit">Gửi</button>
+    </form>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+      const socket = io();
+
+      const messages = document.getElementById('messages');
+      const chatForm = document.getElementById('chatForm');
+
+      chatForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const username = document.getElementById('username').value;
+        const message = document.getElementById('message').value;
+
+        socket.emit('username', username);
+        socket.emit('chat', message);
+
+        document.getElementById('message').value = '';
+      });
+
+      socket.on('chat', (data) => {
+        const messageElement = document.createElement('div');
+        messageElement.innerHTML = `<strong>${data.username}:</strong> ${data.message} <span class="timestamp">[${data.timestamp}]</span>`;
+        messages.appendChild(messageElement);
+
+        socket.emit('messageReceived');
+      });
+
+      socket.on('status', (data) => {
+        const statusElement = document.createElement('div');
+        statusElement.innerHTML = `<span class="status">${data.status}</span> <span class="timestamp">[${data.timestamp}]</span>`;
+        messages.appendChild(statusElement);
+
+        socket.emit('messageSeen');
+      });
+    </script>
+  </body>
+</html>
